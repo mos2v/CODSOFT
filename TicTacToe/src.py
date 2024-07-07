@@ -1,4 +1,3 @@
-import math
 import numpy as np
 import pygame
 import sys
@@ -21,12 +20,13 @@ CircleR = Square // 3
 CircleW = 15
 CrossWidth = 25
 
-board = np.zeros((BoardR, BoardC), dtype=int)
+
 
 screen = pygame.display.set_mode((Width, Height))
 pygame.display.set_caption("Tic Tac Toe")
 screen.fill(Black)
 
+board = np.zeros((BoardR, BoardC))
 
 def drawLines(color=White):
     for i in range(1, BoardR):
@@ -37,13 +37,15 @@ def drawMoves(color=White):
     for r in range(BoardR):
         for c in range(BoardC):
             if board[r][c] == 1:
-                pygame.draw.circle(screen, color, (int(c * Square + Square // 2)), (int(r * Square + Square // 2)), CircleR, CircleW)
+                pygame.draw.circle(screen, color, (int(c * Square + Square // 2), int(r * Square + Square // 2)), CircleR, CircleW)
             elif board[r][c] == 2:
-                pygame.draw.line(screen, color, (c * Square + Square // 4, r * Square + Square // 4), (c * Square + Square * 3 // 4, r * Square + Square * 3 // 4), CrossWidth)
-                pygame.draw.line(screen, color, (c * Square + Square * 3 // 4, r * Square + Square // 4), (c * Square + Square // 4, r * Square + Square * 3 // 4), CrossWidth)
+                pygame.draw.line(screen, color, (c * Square + Square // 4, r * Square + Square // 4), (c * Square + 3 * Square // 4, r * Square + 3 * Square // 4), CrossWidth)
+                pygame.draw.line(screen, color, (c * Square + Square // 4, r * Square + 3 * Square // 4), (c * Square + 3 * Square // 4, r * Square + Square // 4), CrossWidth)
+
 
 def markSquare(row, col, player):
     board[row][col] = player
+
 
 def square_is_Avaliable(row, col):
     return board[row][col] == 0
@@ -59,11 +61,11 @@ def BoardisFull(check_board=board):
 
 def winning(player, check_board=board):
     for c in range(BoardC):
-        if (check_board[0][c] == player and check_board[1][c] == player and check_board[2][c] == player) or (check_board[c][0] == player and check_board[c][1] == player and check_board[c][2] == player):
+        if (check_board[0][c] == player and check_board[1][c] == player and check_board[2][c] == player):
             return True
         
     for r in range(BoardR):
-        if (check_board[r][0] == player and check_board[r][1] == player and check_board[r][2] == player) or (check_board[0][r] == player and check_board[1][r] == player and check_board[2][r] == player):
+        if (check_board[r][0] == player and check_board[r][1] == player and check_board[r][2] == player):
             return True
         
     if (check_board[0][0] == player and check_board[1][1] == player and check_board[2][2] == player) or (check_board[0][2] == player and check_board[1][1] == player and check_board[2][0] == player):
@@ -74,6 +76,7 @@ def winning(player, check_board=board):
 
 
 def minimax(minimaxBoard, depth, maximizing):
+    
     if winning(2, minimaxBoard):
         return float('inf')
     elif winning(1, minimaxBoard):
@@ -132,6 +135,7 @@ def restart():
         for c in range(BoardC):
             board[r][c] = 0
 
+drawLines()
 
 player = 1
 gameOver = False
@@ -149,13 +153,13 @@ while True:
                 markSquare(mouseY, mouseX, player)
                 if winning(player):
                     gameOver = True
-                    player = player % 2 + 1
+                player = player % 2 + 1
 
                 if not gameOver:
                     if BestMove():
                         if winning(2):
                             gameOver = True
-                    player = player % 2 + 1
+                        player = player % 2 + 1
 
                 if not gameOver:
                     if BoardisFull():
@@ -169,8 +173,16 @@ while True:
 
     if not gameOver:
         drawMoves()
-        pygame.display.update()   
+         
     else:
         if winning(1):
             drawMoves(Green)
             drawLines(Green)
+        elif winning(2):
+            drawMoves(Red)
+            drawLines(Red)
+        else:
+            drawMoves(Gray)
+            drawLines(Gray)
+
+    pygame.display.update()  
