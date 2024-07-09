@@ -19,6 +19,9 @@ from keras.src.layers import Dropout
 from keras.src.layers.merging import add
 from keras.src.callbacks import ModelCheckpoint
 import numpy as np
+from nltk.translate.bleu_score import corpus_bleu
+from keras.src.saving import load_model
+
 
 def FeaturesExtract(dir):
     model = VGG16()
@@ -253,7 +256,66 @@ for i in range(epochs):
     model.fit_generator(generator, epochs=1, steps_per_epoch=steps, verbose=1)
     model.save('dumped/model_' + str(i) + '.h5')
 
+
+def WordID(int, tokenizer):
+    for word, index in tokenizer.word_index.items():
+        if index == int:
+            return word
+    return None
+
+def DescriptionGenerator(model, tokenizer, img, maxLength):
+    inputText = 'startseq'
+
+    for i in range(maxLength):
+        sequence = tokenizer.texts_to_sequences([inputText])[0]
+        sequence = pad_sequences([sequence], maxlen=maxLength)
+        yhat = model.predict([img, sequence], verbose=0)
+        yhat = np.argmax(yhat)
+
+        word = WordID(yhat, tokenizer)
+
+        if word is None:
+            break
+        inputText += ' ' + word
+        if word == 'endseq':
+            break
+    return inputText    
+
+
+def modelEval(model, descriptions, photos, tokenizer, maxLength):
+    Actual, Predicted = list(), list()
+
+    for k, descriptionList in descriptions.items():
+        yhat = DescriptionGenerator(model, tokenizer, photos[k], maxLength)
+
+        ref = [d.split() for d in descriptionList]
+        Actual.append(ref)
+        Predicted.append(yhat.split())
     
+    
+    print('BLEU-1: %f' % corpus_bleu(Actual, Predicted, weights=(1.0, 0, 0, 0)))
+    print('BLEU-2: %f' % corpus_bleu(Actual, Predicted, weights=(0.5, 0.5, 0, 0)))
+    print('BLEU-3: %f' % corpus_bleu(Actual, Predicted, weights=(0.3, 0.3, 0.3, 0)))
+    print('BLEU-4: %f' % corpus_bleu(Actual, Predicted, weights=(0.25, 0.25, 0.25, 0.25)))
+   
 
 
 
+TestFile = 'ImageCaptioning\Flickr_8k.testImages.txt'
+
+test = loadSet(TestFile)
+
+print('Test Dataset: %d' % len(test))
+
+testDescriptions = loadCleanDescriptions('ImageCaptioning\descriptions.txt', test)
+
+print('Test Descriptions: test=%d' % len(testDescriptions))
+
+testFeatures = loadPhotoFeatures('dumped/features.pkl', test)
+
+print('Test Photos: test=%d' % len(testFeatures))
+
+BestModel = 'dumped/model_18.h5'
+model1 = load_model(BestModel)
+
+modelEval(model1, testDescriptions, testFeatures, tokenizer, maxLength)
