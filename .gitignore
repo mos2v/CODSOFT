@@ -1,12 +1,4 @@
-/ImageCaptioning/__MACOSX
 /ImageCaptioning/Flicker8k_Dataset
-/ImageCaptioning/CrowdFlowerAnnotations.txt
-/ImageCaptioning/ExpertAnnotations.txt
-/ImageCaptioning/Flickr_8k.devImages.txt
-/ImageCaptioning/Flickr_8k.testImages.txt
-/ImageCaptioning/Flickr_8k.trainImages.txt
-/ImageCaptioning/Flickr8k_Dataset.zip
-/ImageCaptioning/Flickr8k_text.zip
-/ImageCaptioning/Flickr8k.lemma.token.txt
-/ImageCaptioning/Flickr8k.token.txt
-/ImageCaptioning/readme.txt
+/ImageCaptioning/image_features.pkl
+/ImageCaptioning/captions.txt
+/ImageCaptioning/caption_model.h5
